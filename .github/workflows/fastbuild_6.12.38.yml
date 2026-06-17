@@ -690,7 +690,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: Module.symvers
-          path: ${{ github.workspace }}/kernel_workspace/common/Module.symvers
+          path: ${{ github.workspace }}/kernel_workspace/common/out/Module.symvers
           overwrite: true
       - name: 保存新的 ccache 缓存
         if: inputs.ccache_update || steps.ccache-restore.outputs.cache-hit != 'true'
