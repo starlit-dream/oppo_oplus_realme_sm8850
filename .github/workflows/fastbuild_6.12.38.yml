@@ -727,18 +727,7 @@ jobs:
               find ../common/out/ -name "${mod}.ko" -exec cp {} ./ \; 2>/dev/null || true
           done
           # 修改 anykernel.sh：刷完内核后把 .ko 模块装进 /vendor/lib/modules/
-          cat > install_modules.sh << 'INEOF'
-# Install vendor display modules
-if ls "$AKHOME/"*.ko 1>/dev/null 2>&1; then
-    mount -o rw,remount /vendor 2>/dev/null || true
-    for ko_module in "$AKHOME/"*.ko; do
-        ui_print "Installing vendor module: $(basename $ko_module)..."
-        cp "$ko_module" "/vendor/lib/modules/$(basename $ko_module)"
-        chmod 644 "/vendor/lib/modules/$(basename $ko_module)"
-    done
-    mount -o ro,remount /vendor 2>/dev/null || true
-fi
-INEOF
+          echo 'IyBJbnN0YWxsIHZlbmRvciBkaXNwbGF5IG1vZHVsZXMKaWYgbHMgIiRBS0hPTUUvIioua28gMT4vZGV2L251bGwgMj4mMTsgdGhlbgogICAgbW91bnQgLW8gcncscmVtb3VudCAvdmVuZG9yIDI+L2Rldi9udWxsIHx8IHRydWUKICAgIGZvciBrb19tb2R1bGUgaW4gIiRBS0hPTUUvIioua287IGRvCiAgICAgICAgdWlfcHJpbnQgIkluc3RhbGxpbmcgdmVuZG9yIG1vZHVsZTogJChiYXNlbmFtZSAka29fbW9kdWxlKS4uLiIKICAgICAgICBjcCAiJGtvX21vZHVsZSIgIi92ZW5kb3IvbGliL21vZHVsZXMvJChiYXNlbmFtZSAka29fbW9kdWxlKSIKICAgICAgICBjaG1vZCA2NDQgIi92ZW5kb3IvbGliL21vZHVsZXMvJChiYXNlbmFtZSAka29fbW9kdWxlKSIKICAgIGRvbmUKICAgIG1vdW50IC1vIHJvLHJlbW91bnQgL3ZlbmRvciAyPi9kZXYvbnVsbCB8fCB0cnVlCmZpCg==' | base64 -d > install_modules.sh
           sed -i '/^## end boot install$/r install_modules.sh' anykernel.sh
           rm -f install_modules.sh
           if [[ ! -f ./Image ]]; then
