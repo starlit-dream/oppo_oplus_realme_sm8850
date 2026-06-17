@@ -360,6 +360,10 @@ jobs:
           cd kernel_workspace
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_MODVERSIONS=n" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_DRM_MSM=m" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_DRM_MSM_DPU=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_DRM_MSM_DSI=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_DRM_MSM_MDSS=y" >> ./common/arch/arm64/configs/gki_defconfig
           if [[ "${{ github.event.inputs.susfs_enable }}" == "false" ]]; then
             echo "CONFIG_KSU_SUSFS=n" >> ./common/arch/arm64/configs/gki_defconfig
           fi
@@ -667,7 +671,7 @@ jobs:
           sudo rm -rf /opt/hostedtoolcache/CodeQL &
           make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="clang" LD="ld.lld" OBJCOPY="llvm-objcopy" O=out gki_defconfig &&
           export CC="$(pwd)/cc-wrapper" && export LD="$(pwd)/ld-wrapper" &&
-          make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="$(pwd)/cc-wrapper" LD="$(pwd)/ld-wrapper" OBJCOPY="llvm-objcopy" O=out Image
+          make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="$(pwd)/cc-wrapper" LD="$(pwd)/ld-wrapper" OBJCOPY="llvm-objcopy" O=out Image modules
           
           # 编译后时间劫持二次校验
           echo "--- 编译后环境时间: $(LD_PRELOAD=$PRELOAD_LIBS date) ---"
@@ -719,6 +723,9 @@ jobs:
           rm -rf ./AnyKernel3/.git
           cd AnyKernel3
           cp ../common/out/arch/arm64/boot/Image ./Image
+          for mod in msm_drm msm_kgsl drm_display_helper; do
+              find ../common/out/ -name "${mod}.ko" -exec cp {} ./ \; 2>/dev/null || true
+          done
           if [[ ! -f ./Image ]]; then
             echo "未找到内核镜像文件，构建可能出错"
             exit 1
