@@ -726,6 +726,21 @@ jobs:
           for mod in msm_drm msm_kgsl drm_display_helper; do
               find ../common/out/ -name "${mod}.ko" -exec cp {} ./ \; 2>/dev/null || true
           done
+          # 修改 anykernel.sh：刷完内核后把 .ko 模块装进 /vendor/lib/modules/
+          cat > install_modules.sh << 'INEOF'
+# Install vendor display modules
+if ls "$AKHOME/"*.ko 1>/dev/null 2>&1; then
+    mount -o rw,remount /vendor 2>/dev/null || true
+    for ko_module in "$AKHOME/"*.ko; do
+        ui_print "Installing vendor module: $(basename $ko_module)..."
+        cp "$ko_module" "/vendor/lib/modules/$(basename $ko_module)"
+        chmod 644 "/vendor/lib/modules/$(basename $ko_module)"
+    done
+    mount -o ro,remount /vendor 2>/dev/null || true
+fi
+INEOF
+          sed -i '/^## end boot install$/r install_modules.sh' anykernel.sh
+          rm -f install_modules.sh
           if [[ ! -f ./Image ]]; then
             echo "未找到内核镜像文件，构建可能出错"
             exit 1
