@@ -595,7 +595,7 @@ jobs:
           echo "FAKETIME=$FAKETIME" >> $GITHUB_ENV
           SO_DIR=$(pwd)
           export PRELOAD_LIBS="$SO_DIR/libfakestat.so $SO_DIR/libfaketimeMT.so"
-          export REAL_CLANG_PATH="$WORKDIR/kernel_workspace/clang19/bin/clang"
+          export REAL_CLANG_PATH="$WORKDIR/kernel_workspace/clang20/bin/clang"
           #创建 CC (编译器) 包装器
           echo '#!/bin/bash' > cc-wrapper
           echo 'export LD_PRELOAD="'$PRELOAD_LIBS'"' >> cc-wrapper
@@ -639,7 +639,7 @@ jobs:
           export RUSTC="rustc"
           export BINDGEN="bindgen"
           export CC="clang"
-          export LIBCLANG_PATH="$WORKDIR/kernel_workspace/clang19/lib"
+          export LIBCLANG_PATH="$WORKDIR/kernel_workspace/clang20/lib"
           # 3. 配置KCFLAGS
           KCFLAGS+=" -no-canonical-prefixes"
           KCFLAGS+=" -O2"
