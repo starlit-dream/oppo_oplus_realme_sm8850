@@ -364,6 +364,7 @@ jobs:
           echo "CONFIG_DRM_MSM_DPU=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_DRM_MSM_DSI=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_DRM_MSM_MDSS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_ZRAM=n" >> ./common/arch/arm64/configs/gki_defconfig
           if [[ "${{ github.event.inputs.susfs_enable }}" == "false" ]]; then
             echo "CONFIG_KSU_SUSFS=n" >> ./common/arch/arm64/configs/gki_defconfig
           fi
