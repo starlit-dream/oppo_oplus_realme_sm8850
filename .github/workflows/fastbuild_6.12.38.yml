@@ -130,7 +130,7 @@ jobs:
           rm -f ./ccache &
           
           echo "正在克隆源码仓库..."
-          aria2c -s16 -x16 -k1M https://github.com/cctv18/android_kernel_common_oneplus_sm8845/archive/refs/heads/oneplus/sm8845_b_16.0.0_ace_6t.zip -o common.zip && 
+          aria2c -s16 -x16 -k1M https://github.com/OnePlusOSS/android_kernel_common_oneplus_sm8845/archive/refs/heads/oneplus/sm8845_b_16.0.0_ace_6t.zip -o common.zip && 
           unzip -q common.zip && 
           mv "android_kernel_common_oneplus_sm8845-oneplus-sm8845_b_16.0.0_ace_6t" common &&
           rm -rf common.zip &
@@ -688,15 +688,6 @@ jobs:
           export CC="$(pwd)/cc-wrapper" && export LD="$(pwd)/ld-wrapper" &&
           make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="$(pwd)/cc-wrapper" LD="$(pwd)/ld-wrapper" OBJCOPY="llvm-objcopy" O=out Image
           
-          # 编译所有 =m 模块，-k 跳过因缺源码失败的 vendor 模块
-          # modules 目标按 Makefile 层级处理依赖，drm_display_helper → msm 的交叉符号自动解析
-          make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="$(pwd)/cc-wrapper" LD="$(pwd)/ld-wrapper" OBJCOPY="llvm-objcopy" O=out -k modules || true
-          
-          # 验证关键模块已生成（-k 不报错，我们手动拦）
-          test -f out/drivers/gpu/drm/msm/msm.ko || { echo "ERROR: msm.ko 未生成"; exit 1; }
-          test -f out/drivers/gpu/drm/display/drm_display_helper.ko || { echo "ERROR: drm_display_helper.ko 未生成"; exit 1; }
-          echo "display 模块编译验证通过"
-          
           # 编译后时间劫持二次校验
           echo "--- 编译后环境时间: $(LD_PRELOAD=$PRELOAD_LIBS date) ---"
           echo "--- 编译后环境文件时间戳: ---"
@@ -747,13 +738,6 @@ jobs:
           rm -rf ./AnyKernel3/.git
           cd AnyKernel3
           cp ../common/out/arch/arm64/boot/Image ./Image
-          for mod in msm drm_display_helper; do
-              find ../common/out/ -name "${mod}.ko" -exec cp {} ./ \; 2>/dev/null || true
-          done
-          # 修改 anykernel.sh：刷完内核后把 .ko 模块装进 /vendor/lib/modules/
-          echo 'IyBJbnN0YWxsIHZlbmRvciBkaXNwbGF5IG1vZHVsZXMKaWYgbHMgIiRBS0hPTUUvIioua28gMT4vZGV2L251bGwgMj4mMTsgdGhlbgogICAgbW91bnQgLW8gcncscmVtb3VudCAvdmVuZG9yIDI+L2Rldi9udWxsIHx8IHRydWUKICAgIGZvciBrb19tb2R1bGUgaW4gIiRBS0hPTUUvIioua287IGRvCiAgICAgICAgbW9kbmFtZT0kKGJhc2VuYW1lICRrb19tb2R1bGUpCiAgICAgICAgdWlfcHJpbnQgIkluc3RhbGxpbmcgdmVuZG9yIG1vZHVsZTogJG1vZG5hbWUuLi4iCiAgICAgICAgY3AgIiRrb19tb2R1bGUiICIvdmVuZG9yL2xpYi9tb2R1bGVzLyRtb2RuYW1lIgogICAgICAgIGNobW9kIDY0NCAiL3ZlbmRvci9saWIvbW9kdWxlcy8kbW9kbmFtZSIKICAgIGRvbmUKICAgICMgUmVuYW1lIG1zbS5rbyAtPiBtc21fZHJtLmtvIGlmIG5lZWRlZCAoa2VybmVsIGJ1aWxkcyBtc20ua28sIHN5c3RlbSBleHBlY3RzIG1zbV9kcm0ua28pCiAgICBpZiBbIC1mIC92ZW5kb3IvbGliL21vZHVsZXMvbXNtLmtvIF0gJiYgWyAhIC1mIC92ZW5kb3IvbGliL21vZHVsZXMvbXNtX2RybS5rbyBdOyB0aGVuCiAgICAgICAgbXYgL3ZlbmRvci9saWIvbW9kdWxlcy9tc20ua28gL3ZlbmRvci9saWIvbW9kdWxlcy9tc21fZHJtLmtvCiAgICAgICAgdWlfcHJpbnQgIlJlbmFtZWQgbXNtLmtvIC0+IG1zbV9kcm0ua28iCiAgICBmaQogICAgbW91bnQgLW8gcm8scmVtb3VudCAvdmVuZG9yIDI+L2Rldi9udWxsIHx8IHRydWUKZmkK' | base64 -d > install_modules.sh
-          sed -i '/^## end boot install$/r install_modules.sh' anykernel.sh
-          rm -f install_modules.sh
           if [[ ! -f ./Image ]]; then
             echo "未找到内核镜像文件，构建可能出错"
             exit 1
