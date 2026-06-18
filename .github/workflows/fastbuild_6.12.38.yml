@@ -671,7 +671,12 @@ jobs:
           sudo rm -rf /opt/hostedtoolcache/CodeQL &
           make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="clang" LD="ld.lld" OBJCOPY="llvm-objcopy" O=out gki_defconfig &&
           export CC="$(pwd)/cc-wrapper" && export LD="$(pwd)/ld-wrapper" &&
-          make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="$(pwd)/cc-wrapper" LD="$(pwd)/ld-wrapper" OBJCOPY="llvm-objcopy" O=out Image -k modules || true
+          make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="$(pwd)/cc-wrapper" LD="$(pwd)/ld-wrapper" OBJCOPY="llvm-objcopy" O=out Image
+          
+          # 用绝对路径编译 display 模块（M=相对路径在 kernel 6.12 + O=out 下会解析到 objtree，找不到源）
+          SRC_TREE=$(pwd)
+          make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="$(pwd)/cc-wrapper" LD="$(pwd)/ld-wrapper" OBJCOPY="llvm-objcopy" O=out M=$SRC_TREE/drivers/gpu/drm/msm
+          make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="$(pwd)/cc-wrapper" LD="$(pwd)/ld-wrapper" OBJCOPY="llvm-objcopy" O=out M=$SRC_TREE/drivers/gpu/drm/display
           
           # 编译后时间劫持二次校验
           echo "--- 编译后环境时间: $(LD_PRELOAD=$PRELOAD_LIBS date) ---"
@@ -724,7 +729,7 @@ jobs:
           cd AnyKernel3
           cp ../common/out/arch/arm64/boot/Image ./Image
           for mod in msm drm_display_helper; do
-              find ../common/out/ -name "${mod}.ko" -exec cp {} ./ \; 2>/dev/null || true
+              find ../common/out/ ../common/drivers/gpu/drm/ -name "${mod}.ko" -exec cp {} ./ \; 2>/dev/null || true
           done
           # 修改 anykernel.sh：刷完内核后把 .ko 模块装进 /vendor/lib/modules/
           echo 'IyBJbnN0YWxsIHZlbmRvciBkaXNwbGF5IG1vZHVsZXMKaWYgbHMgIiRBS0hPTUUvIioua28gMT4vZGV2L251bGwgMj4mMTsgdGhlbgogICAgbW91bnQgLW8gcncscmVtb3VudCAvdmVuZG9yIDI+L2Rldi9udWxsIHx8IHRydWUKICAgIGZvciBrb19tb2R1bGUgaW4gIiRBS0hPTUUvIioua287IGRvCiAgICAgICAgbW9kbmFtZT0kKGJhc2VuYW1lICRrb19tb2R1bGUpCiAgICAgICAgdWlfcHJpbnQgIkluc3RhbGxpbmcgdmVuZG9yIG1vZHVsZTogJG1vZG5hbWUuLi4iCiAgICAgICAgY3AgIiRrb19tb2R1bGUiICIvdmVuZG9yL2xpYi9tb2R1bGVzLyRtb2RuYW1lIgogICAgICAgIGNobW9kIDY0NCAiL3ZlbmRvci9saWIvbW9kdWxlcy8kbW9kbmFtZSIKICAgIGRvbmUKICAgICMgUmVuYW1lIG1zbS5rbyAtPiBtc21fZHJtLmtvIGlmIG5lZWRlZCAoa2VybmVsIGJ1aWxkcyBtc20ua28sIHN5c3RlbSBleHBlY3RzIG1zbV9kcm0ua28pCiAgICBpZiBbIC1mIC92ZW5kb3IvbGliL21vZHVsZXMvbXNtLmtvIF0gJiYgWyAhIC1mIC92ZW5kb3IvbGliL21vZHVsZXMvbXNtX2RybS5rbyBdOyB0aGVuCiAgICAgICAgbXYgL3ZlbmRvci9saWIvbW9kdWxlcy9tc20ua28gL3ZlbmRvci9saWIvbW9kdWxlcy9tc21fZHJtLmtvCiAgICAgICAgdWlfcHJpbnQgIlJlbmFtZWQgbXNtLmtvIC0+IG1zbV9kcm0ua28iCiAgICBmaQogICAgbW91bnQgLW8gcm8scmVtb3VudCAvdmVuZG9yIDI+L2Rldi9udWxsIHx8IHRydWUKZmkK' | base64 -d > install_modules.sh
