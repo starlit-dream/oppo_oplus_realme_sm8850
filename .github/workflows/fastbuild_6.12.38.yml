@@ -556,21 +556,6 @@ jobs:
           sed -i 's/${scm_version}//' ./common/scripts/setlocalversion
           echo "CONFIG_LOCALVERSION_AUTO=n" >> ./common/arch/arm64/configs/gki_defconfig
            
-      - name: 应用 风驰 HMBIRD 调度器
-        run: |
-          cd kernel_workspace
-          echo "正在下载 HMBIRD 调度器补丁..."
-          curl -sL https://raw.githubusercontent.com/starlit-dream/SCHED_PATCH/sm8845/fengchi_oneplus_ace_6t.patch -o hmbird.patch
-          # 补丁中 a/ b/ 方向写反了，修正后 git apply 才能识别
-          sed -i 's|^--- b/|--- a/|; s|^+++ a/|+++ b/|; s|^diff --git b/|diff --git a/|' hmbird.patch
-          echo "正在应用 HMBIRD 调度器补丁..."
-          cd common
-          git apply --verbose --reject ../hmbird.patch 2>&1 || {
-            echo "git apply 失败，尝试用 patch -p1 -N 补打..."
-            patch -p1 -N -r - < ../hmbird.patch || true
-          }
-          echo "HMBIRD 调度器补丁应用完成"
-          
       - name: 构建内核
         run: |
           WORKDIR="$(pwd)"
